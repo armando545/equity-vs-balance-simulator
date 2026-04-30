@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forex Simulator Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Estilos base para scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen">
+  
+  <div class="p-4 md:p-6 max-w-[1600px] mx-auto">
+    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-500 to-emerald-500 flex items-center justify-center text-lg">📈</div>
+      <div>
+        <div class="text-lg font-bold tracking-tight">Equity vs Balance Simulator</div>
+        <div class="text-xs tracking-widest text-sky-800 uppercase">Forex Investment Projection Tool</div>
+      </div>
+      <div class="ml-auto bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-xs font-mono text-sky-600">PRO v2.0</div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-[320px_1fr] gap-5">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 h-fit">
+        <div class="flex items-center gap-2 text-xs tracking-widest text-sky-700 uppercase mb-4">
+          <div class="w-0.5 h-3.5 bg-gradient-to-b from-sky-500 to-emerald-500 rounded-full"></div>
+          Parámetros de Simulación
+        </div>
+
+        <div class="flex items-center gap-2 my-3 text-xs tracking-widest text-slate-700 uppercase">
+          Capital & Depósitos <div class="flex-1 h-px bg-slate-800"></div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Capital Inicial (USD)</label>
+          <input type="number" id="capital" value="10000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-600 transition-colors">
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Depósito por período (USD)</label>
+          <input type="number" id="deposit" value="500" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-600 transition-colors">
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Frecuencia de Depósito</label>
+          <select id="depFreq" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-600 transition-colors">
+            <option value="monthly">Mensual</option>
+            <option value="bimonthly">Bimensual</option>
+            <option value="quarterly">Trimestral</option>
+            <option value="semiannual">Semestral</option>
+            <option value="once">Único (mes 1)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2 my-3 text-xs tracking-widest text-slate-700 uppercase">
+          Retiros <div class="flex-1 h-px bg-slate-800"></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Retiro por período (USD)</label>
+          <input type="number" id="withdraw" value="200" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-600 transition-colors">
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Frecuencia de Retiro</label>
+          <select id="witFreq" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 outline-none focus:border-sky-600 transition-colors">
+            <option value="monthly">Mensual</option>
+            <option value="quarterly" selected>Trimestral</option>
+            <option value="semiannual">Semestral</option>
+            <option value="annual">Anual</option>
+            <option value="once">Único (mes 1)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2 my-3 text-xs tracking-widest text-slate-700 uppercase">
+          Crédito & Rendimiento <div class="flex-1 h-px bg-slate-800"></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Bono sobre depósito (%)</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="creditPct" min="0" max="50" step="1" value="10" oninput="updateVal('creditPctVal', this.value, '%')" class="flex-1 h-1 rounded-full accent-emerald-400 bg-slate-800 outline-none cursor-pointer">
+            <span id="creditPctVal" class="font-mono text-xs text-emerald-400 w-12 text-right">10%</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">% Profit Realizado (RPnL)</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="realized" min="0" max="30" step="0.5" value="5" oninput="updateVal('realizedVal', this.value, '%')" class="flex-1 h-1 rounded-full accent-emerald-400 bg-slate-800 outline-none cursor-pointer">
+            <span id="realizedVal" class="font-mono text-xs text-emerald-400 w-12 text-right">5%</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">% Profit No Realizado (UPnL)</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="unrealized" min="0" max="20" step="0.5" value="3" oninput="updateVal('unrealizedVal', this.value, '%')" class="flex-1 h-1 rounded-full accent-emerald-400 bg-slate-800 outline-none cursor-pointer">
+            <span id="unrealizedVal" class="font-mono text-xs text-emerald-400 w-12 text-right">3%</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs tracking-widest text-slate-500 mb-1.5 uppercase">Duración de proyección</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="months" min="1" max="60" step="1" value="12" oninput="updateVal('monthsVal', this.value, ' m')" class="flex-1 h-1 rounded-full accent-emerald-400 bg-slate-800 outline-none cursor-pointer">
+            <span id="monthsVal" class="font-mono text-xs text-emerald-400 w-12 text-right">12 m</span>
+          </div>
+        </div>
+
+        <button onclick="runSimulation()" class="w-full mt-2 py-2.5 bg-gradient-to-r from-sky-800 to-emerald-800 hover:from-sky-700 hover:to-emerald-700 rounded-lg text-sm font-bold tracking-wide transition-all">
+          ⚡ Calcular Proyección
+        </button>
+        <button id="btnExport" onclick="exportCSV()" class="w-full mt-2 py-2.5 bg-transparent border border-slate-700 hover:border-sky-700 text-slate-400 hover:text-sky-400 rounded-lg text-sm font-semibold tracking-wide transition-all hidden">
+          ⬇ Exportar CSV
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="bg-slate-900 border border-slate-800 border-t-2 border-t-sky-500 rounded-xl p-4 text-sky-400">
+            <div class="text-xs tracking-widest text-slate-500 uppercase mb-2">Balance Final</div>
+            <div id="kpi-balance" class="font-mono text-2xl font-semibold mb-1">—</div>
+            <div class="text-xs text-slate-600">Liquidez disponible</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 border-t-2 border-t-emerald-500 rounded-xl p-4 text-emerald-400">
+            <div class="text-xs tracking-widest text-slate-500 uppercase mb-2">Equity Final</div>
+            <div id="kpi-equity" class="font-mono text-2xl font-semibold mb-1">—</div>
+            <div class="text-xs text-slate-600">Incl. UPnL + Créditos</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 border-t-2 border-t-amber-500 rounded-xl p-4 text-amber-400">
+            <div class="text-xs tracking-widest text-slate-500 uppercase mb-2">ROI Total</div>
+            <div id="kpi-roi" class="font-mono text-2xl font-semibold mb-1">—</div>
+            <div class="text-xs text-slate-600">Sobre capital inicial</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex-1 min-h-[300px] flex flex-col">
+          <div class="flex items-center gap-2 text-xs tracking-widest text-sky-700 uppercase mb-4">
+            <div class="w-0.5 h-3.5 bg-gradient-to-b from-sky-500 to-emerald-500 rounded-full"></div>
+            Evolución Balance vs Equity
+          </div>
+          
+          <div id="chartPlaceholder" class="flex flex-1 items-center justify-center text-slate-700 text-sm">
+            Configure los parámetros y presione Calcular
+          </div>
+          <div id="chartContainer" class="relative flex-1 hidden">
+            <canvas id="simChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tableContainer" class="mt-5 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hidden">
+      <div class="px-5 py-3 border-b border-slate-800 flex items-center gap-2 text-xs tracking-widest text-sky-700 uppercase">
+        <div class="w-0.5 h-3.5 bg-gradient-to-b from-sky-500 to-emerald-500 rounded-full"></div>
+        Tabla de Proyección Detallada
+      </div>
+      <div class="overflow-x-auto max-h-[400px] overflow-y-auto relative">
+        <table class="w-full text-xs">
+          <thead class="sticky top-0 bg-slate-950 z-10">
+            <tr>
+              <th class="px-4 py-3 text-left text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Mes</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Bal. Inicial</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Equity Inicial</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Depósito</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">RPnL</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">UPnL Actual</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Retiro</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Bal. Final</th>
+              <th class="px-4 py-3 text-right text-slate-600 tracking-widest uppercase font-semibold whitespace-nowrap">Equity Final</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-5 bg-slate-900 border border-slate-800 border-l-2 border-l-amber-700 rounded-lg p-4 text-xs text-slate-500 leading-relaxed">
+      <strong class="block text-amber-700 mb-1 text-xs tracking-wide">⚠ AVISO LEGAL — SOLO PROYECCIONES MATEMÁTICAS</strong>
+      Esta herramienta genera estimaciones basadas en fórmulas matemáticas con tasas de rendimiento constantes definidas por el usuario. Los resultados NO constituyen garantía, asesoramiento financiero ni promesa de ganancias. El mercado Forex implica riesgos significativos, incluyendo la pérdida parcial o total del capital invertido. Los rendimientos pasados no garantizan resultados futuros. Las proyecciones ignoran spreads, comisiones, slippage, volatilidad real del mercado y condiciones de broker. Consulte a un asesor financiero certificado antes de tomar decisiones de inversión.
+    </div>
+
+  </div>
+
+  <script>
+    // ─── Variables Globales ──────────────────────────────────────────────
+    let chartInstance = null;
+    let simulationRows = [];
+
+    // ─── Helpers ──────────────────────────────────────────────────────────
+    const fmt = (n, d = 2) => isNaN(n) ? "—" : "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+    const fmtPct = (n) => (isNaN(n) ? "—" : (n >= 0 ? "+" : "") + Number(n).toFixed(2) + "%");
+    const updateVal = (id, val, suffix) => document.getElementById(id).innerText = val + suffix;
+
+    function shouldApply(m, freq) {
+      if (freq === "monthly") return true;
+      if (freq === "bimonthly") return m % 2 === 0;
+      if (freq === "quarterly") return m % 3 === 0;
+      if (freq === "semiannual") return m % 6 === 0;
+      if (freq === "annual") return m % 12 === 0;
+      if (freq === "once") return m === 1;
+      return false;
+    }
+
+    // ─── Core Simulation ──────────────────────────────────────────────────
+    function getFormConfig() {
+      return {
+        capital: parseFloat(document.getElementById('capital').value) || 0,
+        deposit: parseFloat(document.getElementById('deposit').value) || 0,
+        depFreq: document.getElementById('depFreq').value,
+        withdraw: parseFloat(document.getElementById('withdraw').value) || 0,
+        witFreq: document.getElementById('witFreq').value,
+        creditPct: parseFloat(document.getElementById('creditPct').value) || 0,
+        realized: parseFloat(document.getElementById('realized').value) || 0,
+        unrealized: parseFloat(document.getElementById('unrealized').value) || 0,
+        months: parseInt(document.getElementById('months').value) || 12,
+      };
+    }
+
+    function simulate(cfg) {
+      const rows = [];
+      let balPrev = cfg.capital;
+      let upnlPrev = 0;
+      let credAcc = 0;
+
+      for (let m = 1; m <= cfg.months; m++) {
+        const dep = shouldApply(m, cfg.depFreq) ? cfg.deposit : 0;
+        const wit = shouldApply(m, cfg.witFreq) ? cfg.withdraw : 0;
+        const creditOnDep = dep * (cfg.creditPct / 100);
+        credAcc += creditOnDep;
+
+        const balInit = balPrev;
+        const equityInit = balInit + upnlPrev + credAcc;
+        const rpnl = equityInit * (cfg.realized / 100);
+        const upnlCurr = equityInit * (cfg.unrealized / 100);
+        const balFinal = balInit + rpnl + dep - wit;
+        const equityFinal = balFinal + upnlCurr + credAcc;
+
+        rows.push({ m, balInit, equityInit, dep, rpnl, upnlCurr, wit, balFinal, equityFinal, credAcc });
+        balPrev = balFinal;
+        upnlPrev = upnlCurr;
+      }
+      return rows;
+    }
+
+    // ─── Renderizado ──────────────────────────────────────────────────────
+    function runSimulation() {
+      const cfg = getFormConfig();
+      simulationRows = simulate(cfg);
+
+      const lastRow = simulationRows[simulationRows.length - 1];
+      const roi = ((lastRow.equityFinal - cfg.capital) / cfg.capital) * 100;
+
+      // Update KPIs
+      document.getElementById('kpi-balance').innerText = fmt(lastRow.balFinal);
+      document.getElementById('kpi-equity').innerText = fmt(lastRow.equityFinal);
+      document.getElementById('kpi-roi').innerText = fmtPct(roi);
+
+      // Render Table
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      simulationRows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = "border-t border-slate-800/50 hover:bg-slate-800/40 transition-colors";
+        tr.innerHTML = `
+          <td class="px-4 py-2 font-mono font-semibold text-sky-600">M${r.m}</td>
+          <td class="px-4 py-2 text-right font-mono text-slate-400">${fmt(r.balInit)}</td>
+          <td class="px-4 py-2 text-right font-mono text-slate-400">${fmt(r.equityInit)}</td>
+          <td class="px-4 py-2 text-right font-mono text-emerald-500">${r.dep > 0 ? fmt(r.dep) : "—"}</td>
+          <td class="px-4 py-2 text-right font-mono text-emerald-400">${fmt(r.rpnl)}</td>
+          <td class="px-4 py-2 text-right font-mono text-emerald-300">${fmt(r.upnlCurr)}</td>
+          <td class="px-4 py-2 text-right font-mono text-red-400">${r.wit > 0 ? fmt(r.wit) : "—"}</td>
+          <td class="px-4 py-2 text-right font-mono font-semibold text-sky-400">${fmt(r.balFinal)}</td>
+          <td class="px-4 py-2 text-right font-mono font-semibold text-emerald-400">${fmt(r.equityFinal)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Show elements
+      document.getElementById('chartPlaceholder').classList.add('hidden');
+      document.getElementById('chartContainer').classList.remove('hidden');
+      document.getElementById('tableContainer').classList.remove('hidden');
+      document.getElementById('btnExport').classList.remove('hidden');
+
+      // Render Chart
+      renderChart(simulationRows);
+    }
+
+    function renderChart(data) {
+      const ctx = document.getElementById('simChart').getContext('2d');
+      
+      const labels = data.map(r => 'M' + r.m);
+      const balanceData = data.map(r => r.balFinal.toFixed(2));
+      const equityData = data.map(r => r.equityFinal.toFixed(2));
+
+      // Destruir instancia anterior si existe
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      // Crear gradientes
+      const gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientBlue.addColorStop(0, 'rgba(14, 165, 233, 0.4)');
+      gradientBlue.addColorStop(1, 'rgba(14, 165, 233, 0)');
+
+      const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
+      gradientGreen.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+      gradientGreen.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Balance',
+              data: balanceData,
+              borderColor: '#0ea5e9',
+              backgroundColor: gradientBlue,
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 4
+            },
+            {
+              label: 'Equity',
+              data: equityData,
+              borderColor: '#10b981',
+              backgroundColor: gradientGreen,
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { family: 'monospace', size: 11 } }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#f8fafc',
+              bodyColor: '#cbd5e1',
+              borderColor: '#1e293b',
+              borderWidth: 1,
+              titleFont: { family: 'monospace' },
+              bodyFont: { family: 'monospace' },
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': $' + Number(context.raw).toLocaleString();
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#1e293b', drawBorder: false, borderDash: [3, 3] },
+              ticks: { color: '#475569', font: { family: 'monospace', size: 10 } }
+            },
+            y: {
+              grid: { color: '#1e293b', drawBorder: false, borderDash: [3, 3] },
+              ticks: {
+                color: '#475569',
+                font: { family: 'monospace', size: 10 },
+                callback: (value) => '$' + value.toLocaleString()
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ─── Exportar CSV ─────────────────────────────────────────────────────
+    function exportCSV() {
+      if (!simulationRows.length) return;
+      const h = ["Mes","Bal.Inicial","Equity.Inicial","Deposito","RPnL","UPnL","Retiro","Bal.Final","Equity.Final"];
+      const lines = [
+        h.join(","),
+        ...simulationRows.map(r =>
+          [r.m, r.balInit.toFixed(2), r.equityInit.toFixed(2), r.dep.toFixed(2),
+           r.rpnl.toFixed(2), r.upnlCurr.toFixed(2), r.wit.toFixed(2),
+           r.balFinal.toFixed(2), r.equityFinal.toFixed(2)].join(",")
+        ),
+      ];
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "simulacion_forex.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
