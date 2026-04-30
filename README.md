@@ -1,1 +1,1 @@
-# equity_vs_balance_simulator
+# equity-vs-balance-simulator
